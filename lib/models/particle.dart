@@ -7,6 +7,8 @@ class Particle extends LinkedListEntry<Particle> {
     required this.radius,
     required this.rgbaColor,
     required this.pathType,
+    required this.endX,
+    required this.endY,
   });
 
   final int cx;
@@ -14,4 +16,6 @@ class Particle extends LinkedListEntry<Particle> {
   final double radius;
   final int rgbaColor;
   final int pathType;
+  final double endX;
+  final double endY;
 }
