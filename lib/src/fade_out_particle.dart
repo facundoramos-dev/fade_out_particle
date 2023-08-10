@@ -53,7 +53,7 @@ class FadeOutParticle extends StatefulWidget {
     required this.disappear,
     required this.child,
     this.beginX = 0,
-    this.endX = 10,
+    this.endX = -10,
     this.beginY = 0,
     this.endY = 6,
     this.spaceBetweenParticles = 2,
