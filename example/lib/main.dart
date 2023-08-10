@@ -1,3 +1,4 @@
+import 'package:example/pages/fade_in_particle_controlled_test.dart';
 import 'package:example/pages/fade_out_particle_controlled_test.dart';
 import 'package:example/pages/fade_out_particle_test.dart';
 import 'package:example/utils/pages_transitions.dart';
@@ -46,9 +47,11 @@ class _HomePageState extends State<HomePage>
               opacity: _fadeOutAnimation,
               child: SingleChildScrollView(
                   child: Column(children: [
-                ..._createRoute("FadeOutParticle", FadeOutParticleTest()),
+                ..._createRoute(
+                    "FadeInParticleControlled", FadeInParticleControlledTest()),
                 ..._createRoute("FadeOutParticleControlled",
-                    FadeOutParticleControlledTest())
+                    FadeOutParticleControlledTest()),
+                ..._createRoute("FadeOutParticle", FadeOutParticleTest()),
               ])))));
 
   List<Widget> _createRoute(String title, Widget page) => [

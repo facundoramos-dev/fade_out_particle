@@ -30,7 +30,7 @@ class RenderBoxParticle extends RenderProxyBox {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    final child = this.child;
+    final RenderBox? child = this.child;
     if (child == null || _progress == 0) {
       super.paint(context, offset);
       return;
@@ -49,6 +49,7 @@ class RenderBoxParticle extends RenderProxyBox {
     paint.blendMode = BlendMode.dstOut;
     final double limit =
         width - width * (1 + width.limitedAnimationWidth / width) * _progress;
+    // final double fadingLimit = math.min(width + limit, _limit);
     final double fadingLimit = math.min(width / 3, 10);
     final Rect clipRect = Rect.fromLTRB(limit, -1.0, width + 1, height + 1);
 

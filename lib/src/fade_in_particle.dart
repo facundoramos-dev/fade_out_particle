@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -12,8 +13,10 @@ const _particleMaxRadius = 2;
 const _particleMinRadius = 1;
 
 /// Fade out Particle effect
+/// 
+/// It is necessary to review the code, it works only for the first time.
 @immutable
-class FadeOutParticle extends StatefulWidget {
+class FadeInParticle extends StatefulWidget {
   /// widget which is going to be disappeared
   final Widget child;
 
@@ -39,7 +42,7 @@ class FadeOutParticle extends StatefulWidget {
   final Duration duration;
 
   /// whether to start disappearing [child] or not
-  final bool disappear;
+  final bool appear;
 
   /// curve of animation
   final Curve curve;
@@ -48,8 +51,8 @@ class FadeOutParticle extends StatefulWidget {
   final VoidCallback? onAnimationEnd;
 
   /// Fade out Particle effect
-  const FadeOutParticle({
-    required this.disappear,
+  const FadeInParticle({
+    required this.appear,
     required this.child,
     this.beginX = 0,
     this.endX = 10,
@@ -64,10 +67,10 @@ class FadeOutParticle extends StatefulWidget {
   }) : assert(spaceBetweenParticles >= 1);
 
   @override
-  State createState() => _FadeOutParticleState();
+  State createState() => _FadeInParticleState();
 }
 
-class _FadeOutParticleState extends State<FadeOutParticle>
+class _FadeInParticleState extends State<FadeInParticle>
     with SingleTickerProviderStateMixin {
   final GlobalKey _repaintKey = GlobalKey();
   late final AnimationController _controller = AnimationController(
@@ -78,10 +81,9 @@ class _FadeOutParticleState extends State<FadeOutParticle>
         widget.onAnimationEnd?.call();
       }
     });
-  late final CurvedAnimation _animation = CurvedAnimation(
-    parent: _controller,
-    curve: widget.curve,
-  );
+  late Animation<double> _animation = Tween<double>(begin: 1, end: 0)
+      .animate(CurvedAnimation(parent: _controller, curve: widget.curve));
+
   LinkedList<Particle>? _particles;
 
   @override
@@ -93,20 +95,24 @@ class _FadeOutParticleState extends State<FadeOutParticle>
   @override
   void initState() {
     super.initState();
-    if (widget.disappear) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _prepareParticles());
-    }
+    if (widget.appear) _postBuild();
   }
 
+  void _postBuild() =>
+      WidgetsBinding.instance.addPostFrameCallback((_) => _prepareParticles());
+
   @override
-  void didUpdateWidget(FadeOutParticle oldWidget) {
+  void didUpdateWidget(FadeInParticle oldWidget) {
     if (oldWidget.duration != widget.duration ||
         oldWidget.curve != widget.curve) {
       _controller.duration = widget.duration;
-      _animation.curve = widget.curve;
+      // _animation = Tween<double>(begin: 1, end: 0)
+      //     .animate(CurvedAnimation(parent: _controller, curve: widget.curve));
     }
-    if (oldWidget.disappear != widget.disappear) {
-      if (widget.disappear) {
+    if (oldWidget.appear != widget.appear) {
+      if (widget.appear) {
+        // setState(() => _particles = null);
+        setState(() => _calculatedParticle = false);
         _prepareParticles();
       } else {
         _controller.reset();
@@ -115,21 +121,28 @@ class _FadeOutParticleState extends State<FadeOutParticle>
     super.didUpdateWidget(oldWidget);
   }
 
+  bool _calculatedParticle = true;
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-        key: _repaintKey,
-        child: AnimatedBuilder(
-            animation: _animation,
-            builder: (BuildContext _, Widget? child) => RenderObjectParticle(
-                progress: _animation.value,
-                particles: _particles,
-                particleMaxRadius: _particleMaxRadius,
-                child: child),
-            child: widget.child));
+    log("opacity: ${_particles != null}");
+    log("progress: ${_particles == null}");
+    return Opacity(
+        opacity: _calculatedParticle ? 0.1 : 1,
+        child: RepaintBoundary(
+            key: _repaintKey,
+            child: AnimatedBuilder(
+                animation: _animation,
+                builder: (BuildContext _, Widget? child) =>
+                    RenderObjectParticle(
+                        progress: _calculatedParticle ? 0 : _animation.value,
+                        particles: _particles,
+                        particleMaxRadius: _particleMaxRadius,
+                        child: child),
+                child: widget.child)));
   }
 
   Future<void> _prepareParticles() async {
+    setState(() =>_calculatedParticle=true);
     final BuildContext? repaintContext = _repaintKey.currentContext;
     if (repaintContext == null) return;
 
@@ -139,7 +152,7 @@ class _FadeOutParticleState extends State<FadeOutParticle>
     try {
       image = await boundary.toImage();
     } catch (e) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _prepareParticles());
+      _postBuild();
 
       return;
     }
@@ -190,12 +203,12 @@ class _FadeOutParticleState extends State<FadeOutParticle>
       }
       verticalOffset += widget.spaceBetweenParticles;
     }
-    if (mounted) {
-      setState(() {
-        _particles = particles;
-        _controller.forward();
-      });
-    }
+
+    setState(() {
+      _calculatedParticle = false;
+      _particles = particles;
+      _controller.forward();
+    });
   }
 
   double _generateRandomRadius(math.Random random) =>

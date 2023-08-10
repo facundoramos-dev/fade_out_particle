@@ -1,4 +1,4 @@
-import 'package:example/widgets/title_fade_out_particle.dart';
+import 'package:example/widgets/title_fade_particle.dart';
 import 'package:fade_out_particle/fade_out_particle.dart';
 import 'package:flutter/material.dart';
 
@@ -20,14 +20,10 @@ class _FadeOutParticleTestState extends State<FadeOutParticleTest> {
           mainAxisSize: MainAxisSize.min,
           children: [
             FadeOutParticle(
-                beginX: -50,
-                endX: 50,
-                beginY: -50,
-                endY: 50,
-                random: true,
+              spaceBetweenParticles: 3,
                 disappear: _disappear,
                 duration: const Duration(milliseconds: 3000),
-                child: const TitleFadeOutParticle(),
+                child: const TitleFadeParticle(),
                 onAnimationEnd: () => print('animation ended')),
             const SizedBox(height: 150),
             OutlinedButton(

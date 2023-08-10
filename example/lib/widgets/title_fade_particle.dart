@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-class TitleFadeOutParticle extends StatelessWidget {
-  const TitleFadeOutParticle({Key? key}) : super(key: key);
+class TitleFadeParticle extends StatelessWidget {
+  const TitleFadeParticle({Key? key, this.out = true}) : super(key: key);
+
+  final bool out;
 
   @override
   Widget build(BuildContext context) =>
@@ -9,7 +11,7 @@ class TitleFadeOutParticle extends StatelessWidget {
         Icon(Icons.flutter_dash,
             size: 52, color: Theme.of(context).primaryColorDark),
         const SizedBox(width: 8),
-        Text('Fade out Particle',
+        Text("Fade ${out ? 'out' : 'in'} Particle",
             style: Theme.of(context)
                 .textTheme
                 .headline6
