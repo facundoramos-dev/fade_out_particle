@@ -2,25 +2,39 @@ import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
+import 'package:fade_out_particle/models/particle.dart';
+import 'package:fade_out_particle/utils/render_object.dart';
+import 'package:fade_out_particle/extensions/extensions.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-import 'particle.dart';
-
-part 'extensions.dart';
-part 'render_box.dart';
-part 'render_object.dart';
-
 const _particleMaxRadius = 2;
 const _particleMinRadius = 1;
-const _spaceBetweenParticles = 3;
+// const _spaceBetweenParticles = 3;
 
 /// Fade out Particle effect
 @immutable
 class FadeOutParticle extends StatefulWidget {
   /// widget which is going to be disappeared
   final Widget child;
+
+  /// begin positions particles axis X
+  final double beginX;
+
+  /// end position particles axis X
+  final double endX;
+
+  /// begin position particles axis Y
+  final double beginY;
+
+  /// end positions particles axis Y
+  final double endY;
+
+  /// space between particles (+space = -particles)
+  final int spaceBetweenParticles;
+
+  /// to assign random values ​​to the endpoints of the axes
+  final bool random;
 
   /// duration of animation
   final Duration duration;
@@ -38,11 +52,17 @@ class FadeOutParticle extends StatefulWidget {
   const FadeOutParticle({
     required this.disappear,
     required this.child,
+    this.beginX = 0,
+    this.endX = 10,
+    this.beginY = 0,
+    this.endY = 6,
+    this.spaceBetweenParticles = 2,
+    this.random = false,
     this.duration = const Duration(milliseconds: 1500),
     this.curve = Curves.easeOut,
     this.onAnimationEnd,
     super.key,
-  });
+  }) : assert(spaceBetweenParticles >= 1);
 
   @override
   State createState() => _FadeOutParticleState();
@@ -64,6 +84,12 @@ class _FadeOutParticleState extends State<FadeOutParticle>
     curve: widget.curve,
   );
   LinkedList<Particle>? _particles;
+
+  @override
+  void setState(VoidCallback fn) {
+    if (!mounted) return;
+    super.setState(fn);
+  }
 
   @override
   void initState() {
@@ -93,24 +119,21 @@ class _FadeOutParticleState extends State<FadeOutParticle>
   @override
   Widget build(BuildContext context) {
     return RepaintBoundary(
-      key: _repaintKey,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (BuildContext _, Widget? child) => _RenderObject(
-          progress: _animation.value,
-          particles: _particles,
-          child: child,
-        ),
-        child: widget.child,
-      ),
-    );
+        key: _repaintKey,
+        child: AnimatedBuilder(
+            animation: _animation,
+            builder: (BuildContext _, Widget? child) => RenderObjectParticle(
+                progress: _animation.value,
+                particles: _particles,
+                particleMaxRadius: _particleMaxRadius,
+                child: child),
+            child: widget.child));
   }
 
   Future<void> _prepareParticles() async {
     final repaintContext = _repaintKey.currentContext;
-    if (repaintContext == null) {
-      return;
-    }
+    if (repaintContext == null) return;
+
     RenderRepaintBoundary boundary =
         repaintContext.findRenderObject() as RenderRepaintBoundary;
     final ui.Image image;
@@ -132,12 +155,12 @@ class _FadeOutParticleState extends State<FadeOutParticle>
   }
 
   void _generateParticles(ByteData bytes, int width, int height) {
-    final verticalCount = math.max(1, height ~/ _spaceBetweenParticles);
-    final horizontalCount = math.max(1, width ~/ _spaceBetweenParticles);
+    final verticalCount = math.max(1, height ~/ widget.spaceBetweenParticles);
+    final horizontalCount = math.max(1, width ~/ widget.spaceBetweenParticles);
 
     final particles = LinkedList<Particle>();
     int horizontalOffset;
-    const halfSpace = _spaceBetweenParticles ~/ 2;
+    int halfSpace = widget.spaceBetweenParticles ~/ 2;
     int verticalOffset = halfSpace;
     final random = math.Random();
     for (int i = 0; i < verticalCount; i++) {
@@ -150,19 +173,23 @@ class _FadeOutParticleState extends State<FadeOutParticle>
           halfSpace,
         );
         if (!rgbaColor.isTransparent) {
-          particles.add(
-            Particle(
-              cx: horizontalOffset,
-              cy: verticalOffset,
-              rgbaColor: rgbaColor,
-              radius: _generateRandomRadius(random),
-              pathType: random.nextInt(6),
-            ),
-          );
+          particles.add(Particle(
+            cx: horizontalOffset,
+            cy: verticalOffset,
+            rgbaColor: rgbaColor,
+            radius: _generateRandomRadius(random),
+            pathType: random.nextInt(6),
+            endX: widget.random
+                ? random.getRangeDouble(widget.beginX, widget.endX)
+                : widget.endX,
+            endY: widget.random
+                ? random.getRangeDouble(widget.beginY, widget.endY)
+                : widget.endY,
+          ));
         }
-        horizontalOffset += _spaceBetweenParticles;
+        horizontalOffset += widget.spaceBetweenParticles;
       }
-      verticalOffset += _spaceBetweenParticles;
+      verticalOffset += widget.spaceBetweenParticles;
     }
     if (mounted) {
       setState(() {
