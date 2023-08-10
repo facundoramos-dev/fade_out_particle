@@ -25,7 +25,7 @@ class FadeOutParticleControlled extends StatefulWidget {
     this.beginX = 0,
     this.endX = 10,
     this.beginY = 0,
-    this.endY = 6,
+    this.endY = -6,
     this.spaceBetweenParticles = 2,
     this.random = false,
   }) : super(key: key);
