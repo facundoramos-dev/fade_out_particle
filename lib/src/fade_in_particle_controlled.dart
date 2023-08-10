@@ -28,7 +28,6 @@ class FadeInParticleControlled extends StatefulWidget {
     this.endY = -6,
     this.spaceBetweenParticles = 2,
     this.random = false,
-    this.reverse = false,
   }) : super(key: key);
 
   final AnimationController controller;
@@ -40,7 +39,6 @@ class FadeInParticleControlled extends StatefulWidget {
   final double beginY;
   final int spaceBetweenParticles;
   final bool random;
-  final bool reverse;
 
   @override
   State<FadeInParticleControlled> createState() =>
